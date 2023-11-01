@@ -311,6 +311,20 @@ class Pose2Text(nn.Module):
         
         return output, attention
 
+    # translation function
+    # input is a pose tensor, output is a text sentence
+    def translate(self, pose):
+        # pose = [batch size, pose len, pose dim]
+        pose = self.encoder(pose)
+        # pose = [batch size, 1, hid dim]
+        output = torch.LongTensor([[self.trg_pad_idx]]).to(self.device)
+        for i in range(1000):
+            output, _ = self.decoder(output, pose, self.make_trg_mask(output))
+            output = output.argmax(-1)
+            if output[0, -1] == self.trg_pad_idx:
+                break
+        return output
+
 
 def main():
     dataset = Poses_Dataset()
